@@ -446,14 +446,23 @@ def open_browser(port):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--port', metavar='port', type=int, default=5000, help='the port to run on')
+    # If struggling to connect to localhost when running in docker try using host 0.0.0.0 to bind to any address
+    parser.add_argument('--host', metavar='host', type=str, default="127.0.0.1", help='the host to run on')
+    browser_parser = parser.add_mutually_exclusive_group(required=False)
+    browser_parser.add_argument('--browser', dest='browser', action='store_true',
+                                help='launch browser on start (default)')
+    browser_parser.add_argument('--no-browser', dest='browser', action='store_false',
+                                help="don't launch browser on start")
+    parser.set_defaults(browser=True)
 
     args = parser.parse_args()
 
-    print(f'CounterFit - virtual IoT hardware running on port {args.port}')
+    print(f'CounterFit - virtual IoT hardware running on {args.host}:{args.port}')
 
-    Timer(3, open_browser, [args.port]).start()
-    
-    socketio.run(app, port=args.port)
+    if args.browser:
+        Timer(3, open_browser, [args.port]).start()
+
+    socketio.run(app, port=args.port, host=args.host)
 
 if __name__ == '__main__':
     main()
